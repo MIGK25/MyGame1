@@ -16,6 +16,7 @@ var airMineImg;
 var bulletImg, missileImg;
 var missile, bullet;
 var fireImg;
+var damage = 0;
 
 function preload() {
   skyImg = loadImage("Imagees/sky2.jpg");
@@ -65,6 +66,11 @@ function setup() {
   missile.addImage("missile", missileImg);
   missile.addImage("fire", fireImg);
   missile.visible = false;
+
+  bullet = createSprite(plane.x, plane.y);
+  bullet.addImage("bullet", bulletImg);
+  bullet.addImage("fire", fireImg);
+  bullet.visible = false;
 
   enemyGroup = new Group();
   warzoneEnemyGroup = new Group();
@@ -118,17 +124,44 @@ function draw() {
     //Warzone
     if(score >= 5) {
       warzone();
+      showMissileBar();
     }
     //Warzone Collision
     if(warzoneEnemyGroup.isTouching(plane)) {
       gameState = "end";
     }
     //Shooting
-    if(keyDown("space")) {
-      shooting();
-      
+    if(keyWentDown("space")) {
+      missile.visible = true;
+      missile.x = mouseY;
+      missile.y = mouseY;
+      missile.scale = 0.7;
+      missile.velocityX = 18;
     }
-   
+    if(keyWentUp("space")) {
+      missile.changeImage("missile");
+    }
+
+    if(warzoneEnemyGroup.isTouching(missile)){
+      missile.changeImage("fire");
+      warzoneEnemyGroup.destroyEach();
+      missile.velocityX = 0;
+    }
+
+    if(warzoneEnemyGroup.isTouching(bullet)) {
+      damage += 1;
+      if(damage >= 5) {
+        warzoneEnemyGroup.destroyEach();
+        bullet.changeImage("fire");
+      }
+    }
+
+    if(keyWentDown(RIGHT_ARROW)) {
+      shooting();
+    }
+    if(keyWentUp(RIGHT_ARROW)) {
+      bullet.changeImage("bullet");
+    }
   }
 
  
@@ -245,10 +278,21 @@ function warzone() {
 }
 
 function shooting() {
-  missile.visible = true;
-  missile.scale = 0.7;
-  missile.velocityX = 18;
-
-  
-
+  bullet.visible = true;
+  bullet.x = plane.x;
+  bullet.y = plane.y;
+  bullet.velocityX = 25;
+  bullet.scale = 0.5;
+  bullet.lifetime = width/7;
 } 
+
+function showMissileBar() {
+    push();
+    image(missileImg, width / 2 -10, height - 10 - 250, 20, 20);
+    fill("white");
+    rect(width / 2 - 10, height - 10, 185, 20);
+    fill("red");
+    rect(width / 2 - 10, height - 10 - 250, 20);
+    noStroke();
+    pop();
+}
